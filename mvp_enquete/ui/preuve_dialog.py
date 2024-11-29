@@ -1,4 +1,7 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QLineEdit, QListWidget, QMessageBox
+import sqlite3
+import os
+import os.path
 
 class PreuveDialog(QDialog):
     def __init__(self, preuves):
@@ -50,6 +53,18 @@ class PreuveDialog(QDialog):
             self.preuves.append(nom_preuve)
             self.preuve_list.addItem(nom_preuve)
             self.input_preuve.clear()
+
+            conn = sqlite3.connect(self.get_database_path())
+            cursor = conn.cursor()
+
+            # Insérer les données dans la table preuve
+            cursor.execute('''
+                            INSERT INTO preuve (nom_preuve)
+                            VALUES (?)
+                        ''', (nom_preuve,))
+
+            conn.commit()
+
             print(f"Preuve '{nom_preuve}' ajoutée !")
         else:
             QMessageBox.warning(self, "Erreur", "Le nom de la preuve ne peut pas être vide.")
@@ -78,3 +93,19 @@ class PreuveDialog(QDialog):
             print(f"Preuve '{selected_item.text()}' supprimée !")
         else:
             QMessageBox.warning(self, "Erreur", "Veuillez sélectionner une preuve à supprimer.")
+
+    def get_database_path(self, db_name: str = 'poo.db') -> str:
+        """
+        Get the absolute path to a database file.
+
+        Args:
+            db_name (str): The name of the database file (e.g., "poo.db").
+
+        Returns:
+            str: The absolute path to the database file.
+        """
+        # Get the directory where the script is running
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        # Construct the full path to the database file
+        db_path = os.path.join(script_dir, db_name)
+        return db_path
