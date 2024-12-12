@@ -4,6 +4,8 @@ from PyQt5.QtWidgets import QApplication
 from fpdf import FPDF
 from ui.affaire_dialog import AffaireDialog  # Importer la fenêtre de dialogue pour les affaires
 from ui.preuve_dialog import PreuveDialog  # Importer la nouvelle fenêtre de dialogue pour les preuves
+import sqlite3
+import os
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -36,11 +38,50 @@ class MainWindow(QMainWindow):
         self.affaires = []
         self.preuves = {}  # Dictionnaire pour stocker les preuves par affaire
 
+        # Charger les affaires et les preuves depuis la base de données
+        self.charger_affaires()
+        self.charger_preuves()
+
         # Connecter les boutons aux méthodes
         self.btn_affaires.clicked.connect(self.gerer_affaires)
         self.btn_preuves.clicked.connect(self.gerer_preuves)
         self.btn_rapport.clicked.connect(self.generer_rapport)
         self.search_button.clicked.connect(self.rechercher)
+
+    def charger_affaires(self):
+        try:
+            conn = sqlite3.connect(self.get_database_path())
+            cursor = conn.cursor()
+            cursor.execute('SELECT nom_affaire, type_crime, lieu, etat, date_ouverture FROM affaire')
+            rows = cursor.fetchall()
+            for row in rows:
+                affaire = {
+                    "nom": row[0],
+                    "type_crime": row[1],
+                    "lieu": row[2],
+                    "statut": row[3],
+                    "date_ouverture": row[4]
+                }
+                self.affaires.append(affaire)
+            conn.close()
+        except sqlite3.Error as e:
+            print(f"Erreur lors du chargement des affaires depuis la base de données : {e}")
+
+    def charger_preuves(self):
+        try:
+            conn = sqlite3.connect(self.get_database_path())
+            cursor = conn.cursor()
+            cursor.execute('SELECT nom_preuve, nom_affaire FROM preuve')
+            rows = cursor.fetchall()
+            for row in rows:
+                nom_preuve = row[0]
+                affaire_nom = row[1]
+                if affaire_nom not in self.preuves:
+                    self.preuves[affaire_nom] = []
+                self.preuves[affaire_nom].append(nom_preuve)
+            conn.close()
+        except sqlite3.Error as e:
+            print(f"Erreur lors du chargement des preuves depuis la base de données : {e}")
 
     def gerer_affaires(self):
         print("Bouton Gérer les Affaires cliqué !")
@@ -60,7 +101,6 @@ class MainWindow(QMainWindow):
     def generer_rapport(self):
         print("Bouton Générer un Rapport cliqué !")
         self.creer_pdf()
-
 
     def creer_pdf(self):
         pdf = FPDF()
@@ -146,6 +186,22 @@ class MainWindow(QMainWindow):
                     f"Preuve: {nom_preuve}"
                 )
                 QMessageBox.information(self, "Détails de la preuve", details)
+
+    def get_database_path(self, db_name: str = 'database.db') -> str:
+        """
+        Get the absolute path to a database file.
+
+        Args:
+            db_name (str): The name of the database file (e.g., "database.db").
+
+        Returns:
+            str: The absolute path to the database file.
+        """
+        # Get the directory where the script is running
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        # Construct the full path to the database file
+        db_path = os.path.join(script_dir, db_name)
+        return db_path
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
