@@ -61,12 +61,37 @@ class AffaireDialog(QDialog):
         # Charger les affaires existantes dans la liste
         self.charger_affaires()
 
-
-
     def charger_affaires(self):
         self.affaire_list.clear()
+        self.affaires = self.charger_affaires_db()
         for affaire in self.affaires:
             self.affaire_list.addItem(affaire["nom"])
+
+    def charger_affaires_db(self):
+        affaires = []
+        try:
+            conn = sqlite3.connect(self.get_database_path())
+            cursor = conn.cursor()
+
+            cursor.execute('SELECT nom_affaire, type_crime, lieu, etat, date_ouverture FROM affaire')
+            rows = cursor.fetchall()
+
+            for row in rows:
+                affaire = {
+                    "nom": row[0],
+                    "type_crime": row[1],
+                    "lieu": row[2],
+                    "statut": row[3],
+                    "date_ouverture": row[4]
+                }
+                affaires.append(affaire)
+
+            conn.close()
+        except sqlite3.Error as e:
+            print(f"Erreur lors du chargement des affaires depuis la base de données : {e}")
+            QMessageBox.critical(self, "Erreur", f"Erreur lors du chargement des affaires depuis la base de données : {e}")
+
+        return affaires
 
     def ajouter_affaire(self):
         nom_affaire = self.input_nom.text()

@@ -39,43 +39,10 @@ CREATE TABLE IF NOT EXISTS preuve (
 cursor.execute('''
 CREATE TABLE IF NOT EXISTS rapport (
     id_rapport INTEGER PRIMARY KEY AUTOINCREMENT,
-    contenu TEXT NOT NULL
-)
-''')
-
-# Création de la table Suspects
-cursor.execute('''
-CREATE TABLE IF NOT EXISTS suspects (
-    id_suspects INTEGER PRIMARY KEY AUTOINCREMENT,
-    enquete_id INTEGER NOT NULL,
-    nom_suspects TEXT, 
-    prenom_suspects TEXT,
-    surnom TEXT,
-    age INTEGER,
-    date_naissance DATE,
-    lieu_naissance TEXT,
-    adresse TEXT,
-    taille INTEGER,
-    poids INTEGER,
-    signes_particuliers TEXT,
-    role TEXT,
-    alibi_declare TEXT,
-    FOREIGN KEY (enquete_id) REFERENCES enquete(id)
-)
-''')
-
-# Création de la table Témoin
-cursor.execute('''
-CREATE TABLE IF NOT EXISTS temoin (
-    id_temoin INTEGER PRIMARY KEY AUTOINCREMENT,
-    enquete_id INTEGER NOT NULL,
-    nom_temoin TEXT,
-    prenom_temoin TEXT,
-    age INTEGER, 
-    date_temoignage DATE,
-    temoignage TEXT,
-    adresse TEXT,
-    numero_telephone TEXT
+    id_affaire INTEGER NOT NULL,
+    contenu TEXT NOT NULL,
+    date_creation DATE NOT NULL,
+    FOREIGN KEY (id_affaire) REFERENCES affaire(id_affaire)
 )
 ''')
 

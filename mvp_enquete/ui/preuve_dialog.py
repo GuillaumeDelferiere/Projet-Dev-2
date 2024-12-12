@@ -99,10 +99,11 @@ class PreuveDialog(QDialog):
 
             conn.commit()  # Valider les modifications
             print(f"Preuve '{nom}' ajoutée dans la base de données.")
-            conn.close()
         except sqlite3.Error as e:
+            print(f"Erreur lors de l'ajout dans la base de données : {e}")
             QMessageBox.critical(self, "Erreur", f"Erreur lors de l'ajout dans la base de données : {e}")
-
+        finally:
+            conn.close()  # Fermer la connexion
 
     def get_database_path(self, db_name: str = 'database.db') -> str:
         """
