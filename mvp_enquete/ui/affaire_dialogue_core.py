@@ -2,7 +2,6 @@
 import sqlite3
 import os
 import os.path
-
 class AffaireManager:
     def __init__(self, db_name='database.db'):
         self.db_path = self.get_database_path(db_name)
