@@ -1,15 +1,13 @@
+# gui.py
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QLineEdit, QListWidget, QMessageBox, QComboBox, QDateEdit
 from PyQt5.QtCore import QDate
-import sqlite3
-import os
-import os.path
-
+from core import AffaireManager
 
 class AffaireDialog(QDialog):
-    def __init__(self, affaires):
+    def __init__(self, affaires_manager):
         super().__init__()
 
-        self.affaires = affaires
+        self.affaires_manager = affaires_manager
 
         self.setWindowTitle("Gérer les Affaires")
         self.setGeometry(100, 100, 400, 400)
@@ -61,11 +59,9 @@ class AffaireDialog(QDialog):
         # Charger les affaires existantes dans la liste
         self.charger_affaires()
 
-
-
     def charger_affaires(self):
         self.affaire_list.clear()
-        for affaire in self.affaires:
+        for affaire in self.affaires_manager.get_all_affaires():
             self.affaire_list.addItem(affaire["nom"])
 
     def ajouter_affaire(self):
@@ -73,53 +69,35 @@ class AffaireDialog(QDialog):
         type_crime = self.input_type.text()
         lieu = self.input_lieu.text()
         statut = self.input_statut.currentText()
-        date_ouverture = self.input_date.date().toString("yyyy-MM-dd")  # Format SQL compatible
+        date_ouverture = self.input_date.date().toString("yyyy-MM-dd")
 
         if nom_affaire and type_crime and lieu:
-            # Ajouter dans la liste interne et l'interface
-            affaire = {
-                "nom": nom_affaire,
-                "type_crime": type_crime,
-                "lieu": lieu,
-                "statut": statut,
-                "date_ouverture": date_ouverture
-            }
-            self.affaires.append(affaire)
+            self.affaires_manager.add_affaire(nom_affaire, type_crime, lieu, statut, date_ouverture)
             self.affaire_list.addItem(nom_affaire)
 
-            # Réinitialiser les champs d'entrée
             self.input_nom.clear()
             self.input_type.clear()
             self.input_lieu.clear()
-
-            # Ajouter l'affaire dans la base de données
-            self.ajouter_affaire_db(nom_affaire, type_crime, lieu, statut, date_ouverture)
         else:
             QMessageBox.warning(self, "Erreur", "Tous les champs doivent être remplis.")
 
     def modifier_affaire(self):
         selected_item = self.affaire_list.currentItem()
         if selected_item:
+            index = self.affaire_list.row(selected_item)
             nom_affaire = self.input_nom.text()
             type_crime = self.input_type.text()
             lieu = self.input_lieu.text()
             statut = self.input_statut.currentText()
-            date_ouverture = self.input_date.date().toString("dd/MM/yyyy")
+            date_ouverture = self.input_date.date().toString("yyyy-MM-dd")
 
             if nom_affaire and type_crime and lieu:
-                index = self.affaire_list.row(selected_item)
-                self.affaires[index] = {
-                    "nom": nom_affaire,
-                    "type_crime": type_crime,
-                    "lieu": lieu,
-                    "statut": statut,
-                    "date_ouverture": date_ouverture
-                }
+                self.affaires_manager.update_affaire(index, nom_affaire, type_crime, lieu, statut, date_ouverture)
                 selected_item.setText(nom_affaire)
+
                 self.input_nom.clear()
                 self.input_type.clear()
                 self.input_lieu.clear()
-                print(f"Affaire modifiée en '{nom_affaire}' !")
             else:
                 QMessageBox.warning(self, "Erreur", "Tous les champs doivent être remplis.")
         else:
@@ -129,43 +107,7 @@ class AffaireDialog(QDialog):
         selected_item = self.affaire_list.currentItem()
         if selected_item:
             index = self.affaire_list.row(selected_item)
-            del self.affaires[index]
+            self.affaires_manager.delete_affaire(index)
             self.affaire_list.takeItem(index)
-            print(f"Affaire '{selected_item.text()}' supprimée !")
         else:
             QMessageBox.warning(self, "Erreur", "Veuillez sélectionner une affaire à supprimer.")
-
-
-    def ajouter_affaire_db(self, nom, type_crime, lieu, statut, date_ouverture):
-
-        try:
-            conn = sqlite3.connect(self.get_database_path())
-            cursor = conn.cursor()
-
-            # Insérer les données dans la table affaire
-            cursor.execute('''
-                INSERT INTO affaire (nom_affaire, type_crime, lieu, etat, date_ouverture)
-                VALUES (?, ?, ?, ?, ?)
-            ''', (nom, type_crime, lieu, statut, date_ouverture))
-
-            conn.commit()
-            print(f"Affaire '{nom}' ajoutée dans la base de données.")
-            conn.close()
-        except sqlite3.Error as e:
-            QMessageBox.critical(self, "Erreur", f"Erreur lors de l'ajout dans la base de données : {e}")
-
-    def get_database_path(self,db_name: str = 'poo.db') -> str:
-        """
-        Get the absolute path to a database file.
-
-        Args:
-            db_name (str): The name of the database file (e.g., "poo.db").
-
-        Returns:
-            str: The absolute path to the database file.
-        """
-        # Get the directory where the script is running
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        # Construct the full path to the database file
-        db_path = os.path.join(script_dir, db_name)
-        return db_path
