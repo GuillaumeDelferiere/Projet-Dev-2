@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QLineEdit, QListWidget, QMessageBox
-from core_preuve import PreuveManager
+from preuve_dialog_core import PreuveManager
 
 class PreuveDialog(QDialog):
     def __init__(self, preuves):

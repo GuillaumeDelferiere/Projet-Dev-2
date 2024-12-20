@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QWidget, QMes
 import sys
 from PyQt5.QtWidgets import QApplication
 from fpdf import FPDF
-from core_manager import AffaireManager
+from main_window_core import AffaireManager
 
 class MainWindow(QMainWindow):
     def __init__(self):

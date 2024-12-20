@@ -1,7 +1,7 @@
 # gui.py
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QLineEdit, QListWidget, QMessageBox, QComboBox, QDateEdit
 from PyQt5.QtCore import QDate
-from core import AffaireManager
+from affaire_dialogue_core import AffaireManager
 
 class AffaireDialog(QDialog):
     def __init__(self, affaires_manager):
