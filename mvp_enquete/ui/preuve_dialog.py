@@ -1,16 +1,14 @@
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QLineEdit, QListWidget, QMessageBox
-import sqlite3
-import os
-import os.path
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QLineEdit, QListWidget, QComboBox, QDateTimeEdit
+from PyQt5.QtCore import QDateTime
 
 class PreuveDialog(QDialog):
-    def __init__(self, preuves):
+    def __init__(self, preuve_manager):
         super().__init__()
 
-        self.preuves = preuves
+        self.preuve_manager = preuve_manager
 
         self.setWindowTitle("Gérer les Preuves")
-        self.setGeometry(100, 100, 400, 300)
+        self.setGeometry(100, 100, 400, 400)
 
         layout = QVBoxLayout()
 
@@ -20,9 +18,42 @@ class PreuveDialog(QDialog):
         self.preuve_list = QListWidget()
         layout.addWidget(self.preuve_list)
 
-        self.input_preuve = QLineEdit()
-        self.input_preuve.setPlaceholderText("Nom de la preuve")
-        layout.addWidget(self.input_preuve)
+        self.input_nom = QLineEdit()
+        self.input_nom.setPlaceholderText("Nom de la preuve")
+        layout.addWidget(self.input_nom)
+
+        self.input_type = QLineEdit()
+        self.input_type.setPlaceholderText("Type de preuve")
+        layout.addWidget(self.input_type)
+
+        self.input_description = QLineEdit()
+        self.input_description.setPlaceholderText("Description")
+        layout.addWidget(self.input_description)
+
+        self.input_lien = QLineEdit()
+        self.input_lien.setPlaceholderText("Lien")
+        layout.addWidget(self.input_lien)
+
+        self.input_lieu_collecte = QLineEdit()
+        self.input_lieu_collecte.setPlaceholderText("Lieu de collecte")
+        layout.addWidget(self.input_lieu_collecte)
+
+        self.input_date_heure = QDateTimeEdit()
+        self.input_date_heure.setCalendarPopup(True)
+        self.input_date_heure.setDateTime(QDateTime.currentDateTime())
+        layout.addWidget(self.input_date_heure)
+
+        self.input_resultat_analyse = QLineEdit()
+        self.input_resultat_analyse.setPlaceholderText("Résultat de l'analyse")
+        layout.addWidget(self.input_resultat_analyse)
+
+        self.input_etat_actuel = QComboBox()
+        self.input_etat_actuel.addItems(["En cours", "Terminé", "Archivé"])
+        layout.addWidget(self.input_etat_actuel)
+
+        self.input_scientifique = QLineEdit()
+        self.input_scientifique.setPlaceholderText("Scientifique en charge")
+        layout.addWidget(self.input_scientifique)
 
         self.btn_ajouter = QPushButton("Ajouter une Preuve")
         self.btn_modifier = QPushButton("Modifier une Preuve")
@@ -39,84 +70,49 @@ class PreuveDialog(QDialog):
         self.btn_modifier.clicked.connect(self.modifier_preuve)
         self.btn_supprimer.clicked.connect(self.supprimer_preuve)
 
-        # Charger les preuves existantes dans la liste
+        # Charger les preuves existantes
         self.charger_preuves()
 
     def charger_preuves(self):
         self.preuve_list.clear()
-        for preuve in self.preuves:
-            self.preuve_list.addItem(preuve)
+        preuves = self.preuve_manager.get_all_preuves()
+        for preuve in preuves:
+            self.preuve_list.addItem(preuve["nom"])
 
     def ajouter_preuve(self):
-        nom_preuve = self.input_preuve.text()
-        if nom_preuve:
-            self.preuves.append(nom_preuve)
-            self.preuve_list.addItem(nom_preuve)
-            self.input_preuve.clear()
+        nom = self.input_nom.text()
+        type_preuve = self.input_type.text()
+        description = self.input_description.text()
+        lien = self.input_lien.text()
+        lieu_collecte = self.input_lieu_collecte.text()
+        date_heure_decouverte = self.input_date_heure.dateTime().toString("yyyy-MM-dd HH:mm:ss")
+        resultat_analyse = self.input_resultat_analyse.text()
+        etat_actuel = self.input_etat_actuel.currentText()
+        scientifique_en_charge = self.input_scientifique.text()
 
-
-            # Ajouter l'preuve dans la base de données
-            self.ajouter_preuve_db(nom_preuve)
-            print(f"Preuve '{nom_preuve}' ajoutée !")
-        else:
-            QMessageBox.warning(self, "Erreur", "Le nom de la preuve ne peut pas être vide.")
+        self.preuve_manager.add_preuve(nom, type_preuve, description, lien, lieu_collecte, date_heure_decouverte, resultat_analyse, etat_actuel, scientifique_en_charge)
+        self.charger_preuves()
 
     def modifier_preuve(self):
         selected_item = self.preuve_list.currentItem()
         if selected_item:
-            nom_preuve = self.input_preuve.text()
-            if nom_preuve:
-                index = self.preuve_list.row(selected_item)
-                self.preuves[index] = nom_preuve
-                selected_item.setText(nom_preuve)
-                self.input_preuve.clear()
-                print(f"Preuve modifiée en '{nom_preuve}' !")
-            else:
-                QMessageBox.warning(self, "Erreur", "Le nom de la preuve ne peut pas être vide.")
-        else:
-            QMessageBox.warning(self, "Erreur", "Veuillez sélectionner une preuve à modifier.")
+            nom = self.input_nom.text()
+            type_preuve = self.input_type.text()
+            description = self.input_description.text()
+            lien = self.input_lien.text()
+            lieu_collecte = self.input_lieu_collecte.text()
+            date_heure_decouverte = self.input_date_heure.dateTime().toString("yyyy-MM-dd HH:mm:ss")
+            resultat_analyse = self.input_resultat_analyse.text()
+            etat_actuel = self.input_etat_actuel.currentText()
+            scientifique_en_charge = self.input_scientifique.text()
+            index = self.preuve_list.row(selected_item)
+
+            self.preuve_manager.update_preuve(index, nom, type_preuve, description, lien, lieu_collecte, date_heure_decouverte, resultat_analyse, etat_actuel, scientifique_en_charge)
+            self.charger_preuves()
 
     def supprimer_preuve(self):
         selected_item = self.preuve_list.currentItem()
         if selected_item:
             index = self.preuve_list.row(selected_item)
-            del self.preuves[index]
-            self.preuve_list.takeItem(index)
-            print(f"Preuve '{selected_item.text()}' supprimée !")
-        else:
-            QMessageBox.warning(self, "Erreur", "Veuillez sélectionner une preuve à supprimer.")
-
-    def ajouter_preuve_db(self, nom):
-        try:
-            conn = sqlite3.connect(self.get_database_path())
-            cursor = conn.cursor()
-
-            # Insérer les données dans la table preuve
-            cursor.execute('''
-                INSERT INTO preuve (nom_preuve, type_preuve, description, lien, lieu_collecte, date_heure_decouverte, resultat_analyse, etat_actuel, scientifique_en_charge)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (nom, '', '', '', '', '2023-01-01', '', '', ''))
-
-            conn.commit()  # Valider les modifications
-            print(f"Preuve '{nom}' ajoutée dans la base de données.")
-        except sqlite3.Error as e:
-            print(f"Erreur lors de l'ajout dans la base de données : {e}")
-            QMessageBox.critical(self, "Erreur", f"Erreur lors de l'ajout dans la base de données : {e}")
-        finally:
-            conn.close()  # Fermer la connexion
-
-    def get_database_path(self, db_name: str = 'database.db') -> str:
-        """
-        Get the absolute path to a database file.
-
-        Args:
-            db_name (str): The name of the database file (e.g., "database.db").
-
-        Returns:
-            str: The absolute path to the database file.
-        """
-        # Get the directory where the script is running
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        # Construct the full path to the database file
-        db_path = os.path.join(script_dir, db_name)
-        return db_path
+            self.preuve_manager.delete_preuve(index)
+            self.charger_preuves()
