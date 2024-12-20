@@ -4,6 +4,10 @@ class Personnes:
         self.__prenom = prenom  # Encapsulation : attribut privé
         self.__age = age
 
+    """
+    Getter : permet de lire la valeur de l'attribut.
+    Setter : permet de modifier la valeur.
+    """
 
     def get_nom(self):
         return self.__nom
