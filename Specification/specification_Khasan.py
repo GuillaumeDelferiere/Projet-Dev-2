@@ -66,22 +66,21 @@ def creer_pdf(self):
     """
     pass
 
-
-def generer_pdf(affaires):
+def rechercher(self):
     """
-    Cette fonction génère un fichier PDF contenant une liste d'affaires fournies en paramètre.
+    Cette méthode effectue une recherche dans les affaires et les preuves en fonction de la requête entrée par l'utilisateur dans un champ de recherche.
 
-    :param affaires: une liste d'objets ou de dictionnaires représentant les affaires. Chaque objet/dictionnaire doit être convertible en chaîne de caractères (str).
-    :return Aucun
+    :param Aucun (les données nécessaires, comme `self.affaires` et `self.preuves`, sont disponibles dans l'objet).
 
     PRE :
-        - Le paramètre `affaires` doit être une liste non vide.
-        - Le module FPDF doit être importé et disponible.
-        - Chaque élément de la liste `affaires` doit pouvoir être converti en texte via `str`.
-        - Le chemin d'écriture ("rapport_affaires.pdf") doit être accessible pour la sauvegarde du fichier.
+        - `self.search_input` doit contenir un champ de texte valide pour l'entrée de la requête.
+        - `self.affaires` doit être une liste de dictionnaires contenant au moins les clés "nom", "type_crime", "lieu", et "statut".
+        - `self.preuves` doit être un dictionnaire où les clés sont les noms des affaires et les valeurs sont des listes de preuves.
+        - La méthode `afficher_resultats` doit être implémentée dans la classe pour afficher les résultats.
 
     POST :
-        - Crée un fichier PDF nommé "rapport_affaires.pdf" contenant une ligne par affaire.
-        - Si la liste `affaires` est vide, le fichier PDF contiendra uniquement une page vide avec un titre.
+        - Si une requête valide est fournie et des résultats correspondants sont trouvés, ceux-ci sont stockés dans `self.resultats` et affichés via `afficher_resultats`.
+        - Si aucune correspondance n'est trouvée, un message d'information est affiché à l'utilisateur.
+        - Si la requête est vide, un message d'avertissement est affiché, et la recherche est interrompue.
     """
     pass
